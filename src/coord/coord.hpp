@@ -50,7 +50,16 @@ public:
         return coord(pos-other.pos, std::tie(n1_, n2_));
     }
     
+   
+    bool operator==(coord const& other){
+        bool equal = ((n1_ == other.n1_) && (n2_ == other.n2_ ));
+        return equal;
+    }
     
+    bool operator!=(coord const& other) {return !(*this == other); }
+    
+    
+
     pos_type pos;
 private:
     const int n1_, n2_;

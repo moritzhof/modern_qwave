@@ -31,6 +31,33 @@ namespace qwv{
         std::size_t N_;
         std::vector<T> result{};
     };
+ 
+ 
+ template<typename T>
+ class roots2D{
+ public:
+     
+     roots2D() = default;
+     roots2D(std::size_t N) : N_(N){
+         result.reserve(N);
+      for(auto i :std::views::iota(std::size_t(0)) | std::views::take(N)){
+         this->result.push_back(std::cos(M_PI*(2*i+1)/(4*N)));
+         }
+     }
+     
+     ~roots2D() = default;
+     
+     auto& operator[](auto i ){
+         return this->result[i];
+     }
+     
+     void free(){
+         return this->result.resize(0);
+     }
+ private:
+     std::size_t N_;
+     std::vector<T> result{};
+ };
     
   } //end of discretization namespace
 } // end of qwv namespace

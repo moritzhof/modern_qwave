@@ -9,6 +9,8 @@ Written Moritz Hof:
 
 Basic Linear algebra functions: naively parallelized
 */
+#include "../coord/coord.hpp"
+#include "matrix_map.hpp"
 
 
 #include <vector>
@@ -23,9 +25,7 @@ Basic Linear algebra functions: naively parallelized
 #include <limits>
 #include <numeric>
 #include "mkl_cblas.h"
-#include "counting_iterator.hpp"
 
-#include "matrix_map.hpp"
 
 namespace qwv{
 
@@ -60,11 +60,13 @@ public:
        mat.emplace_back(i);
      });
   }
-
+    
+    matrix(const matrix& A) :_row{A._row}, _col{A._col}, mat{A.mat} {}
+    matrix(matrix&& A) :_row{A._row}, _col{A._col}, mat{A.mat} {}
+    
   matrix(std::initializer_list<std::initializer_list<T>> matx) : _row(matx.size()) ,
      _col(matx.begin()->size()), mat( matx.size() * matx.begin()->size() ), _map(_row, _col) {
 
-     //auto v = std::views::iota(static_cast<std::size_t>(0), _row);
      std::for_each(exec, _map.begin(), _map.end(),
      [&](auto const& it){
         auto [i,j]=*it;
@@ -72,6 +74,19 @@ public:
       });
     }
   ~matrix(){}
+    
+    matrix<T>& operator = (matrix<T> const& rhs){
+        matrix<T> copy = rhs;
+        std::swap(*this, copy);
+        return *this;
+    }
+    
+    matrix<T>& operator = (matrix<T> && rhs){
+        std::swap(_row, rhs._row);
+        std::swap(_col, rhs._col);
+        std::swap(mat, rhs.mat);
+        return *this;
+    }
 
     std::size_t numrows() const {return _row;}
     std::size_t numcols() const {return _col;}
@@ -87,9 +102,8 @@ public:
     //not this component-wise vector multiplation: NOT dot_product: (for Dot-Product: call method dot)
      if ((B._col == 1) && (_col == 1) && (B._row == _row)){
       matrix<T> res(_row, 1);
-      //auto v = std::views::iota(static_cast<std::size_t>(0), B.mat.size());
-       //std::for_each(std::execution::par, std::begin(v), std::end(v), [&](auto i){
-       std::for_each(counting_iterator(0), counting_iterator(B.mat.size()), [&](int i){
+      auto v = std::views::iota(static_cast<std::size_t>(0), B.mat.size());
+       std::for_each(exec, std::begin(v), std::end(v), [&](auto i){
          res[i] = mat[i]*B.mat[i];
        });
        return res;
@@ -97,11 +111,10 @@ public:
 
     if(B._col == 1 && B._row == _row){
     matrix<T> res(_row, 1);
-    //auto v = std::views::iota(static_cast<std::size_t>(0), static_cast<std::size_t>(_row));
-    //   std::for_each(std::execution::par, std::begin(v), std::end(v), [&](auto i){
-    std::for_each(counting_iterator(0), counting_iterator(_row), [&](int i){
+    auto v = std::views::iota(static_cast<std::size_t>(0), static_cast<std::size_t>(_row));
+       std::for_each(std::execution::par, std::begin(v), std::end(v), [&](auto i){
              for(int j = 0; j < _col; ++j){
-               res[i] += mat[i*_col+j]*B[j];
+               res[i] += mat[j*_col+i]*B[j];
            }
        });
 
@@ -121,15 +134,15 @@ public:
   }
 
 
-  matrix<T> operator+(matrix<T>& B){
+  matrix<T> operator+(matrix<T> const & B){
 
     assert(_row == B._row && _col == B._col);
-    matrix result(B._row, B._col);
+    matrix<T> result(B._row, B._col);
     std::for_each(exec,_map.begin(),_map.end(), [&](auto idx){
           auto [i,j]=idx;
-          result(i,j) = (*this)(i,j)+B(i,j);
+          result(i,j) = (*this)(i,j) + B(i,j);
       });
-
+      std::cout << "OPERATOR CALLED\n";
       return result;
   }
 
@@ -143,6 +156,8 @@ public:
       });
       return result;
   }
+    
+
 
    matrix<T> reshape(std::size_t n, std::size_t m);
    matrix<T> reshape_with_padding(std::size_t n, std::size_t m);
@@ -152,7 +167,8 @@ public:
 
     for(int i = 0; i < _mat._row; ++i){
       for(int j = 0; j < _mat._col; ++j){
-        os << std::setprecision(std::numeric_limits<T>::digits10+1) <<_mat.mat[i*_mat._col+j] << "\t"; } os << '\n';
+        os << _mat.mat[j*_mat._col+i] << "  "; } os << '\n';
+        //std::setprecision(std::numeric_limits<T>::digits10+1)
     }
     return os;
   }
@@ -173,9 +189,8 @@ matrix<T> matrix<T>::reshape(std::size_t n, std::size_t m){
 
 matrix<T> result(n, m);
   assert(n*m == _row*_col);
-  //auto v = std::views::iota(static_cast<std::size_t>(0), n*m);
-  //  std::for_each(std::execution::par, std::begin(v), std::end(v), [&](auto i){
-  std::for_each(counting_iterator(0), counting_iterator(n*m), [&](int i){
+  auto v = std::views::iota(static_cast<std::size_t>(0), n*m);
+    std::for_each(std::execution::par, std::begin(v), std::end(v), [&](auto i){
         result[(i/m)*m + i%m] = std::forward<T>(mat[(i/_col)*_col+i % _col]);
       });
 
@@ -188,9 +203,8 @@ template<typename T>
 matrix<T> matrix<T>::reshape_with_padding(std::size_t n, std::size_t m){
 
   matrix<T> result(n, m);
-  //auto v = std::views::iota(static_cast<std::size_t>(0), _row);
-  //  std::for_each(std::execution::par, std::begin(v), std::end(v), [&](auto i){
-  std::for_each(counting_iterator(0), counting_iterator(_row), [&](int i){
+  auto v = std::views::iota(static_cast<std::size_t>(0), _row);
+    std::for_each(std::execution::par, std::begin(v), std::end(v), [&](auto i){
       for(int j = 0; j < _col; ++j)
         result[i*m+j] = std::forward<T>(mat[i*_col+j]);
       });
@@ -214,3 +228,4 @@ matrix<T> matrix<T>::submat(std::size_t startrow, std::size_t endrow, int startc
 }
 
 
+} // end of namespace qwv

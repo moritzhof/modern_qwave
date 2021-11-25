@@ -5,8 +5,7 @@
 //  Created by Moritz Hof on 22.11.21.
 //
 
-#ifndef qwv_util_hpp
-#define qwv_util_hpp
+#pragma once
 
 #include <stdio.h>
 #include<iostream>
@@ -43,4 +42,4 @@ namespace qwv{
   }
  } //end of util namespace
 } //end of qwv namespace
-#endif /* qwv_util_hpp */
+ /* qwv_util_hpp */

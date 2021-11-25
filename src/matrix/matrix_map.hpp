@@ -1,8 +1,9 @@
 
 #pragma once
 
-#include "../coord/coord.hpp"
 #include "../qwv_types.hpp"
+#include "../coord/coord.hpp"
+
 #include <mpi.h>
 
 
@@ -13,6 +14,7 @@ private:
   using pos_type=iter::pos_type;
     
 public:
+
   TensorMap2D(int n1, int n2, MPI_Comm comm=MPI_COMM_SELF);
   TensorMap2D() = default;
   TensorMap2D(TensorMap2D const&)=default;
@@ -48,4 +50,24 @@ private:
   std::shared_ptr<int[]> counts_;
   std::shared_ptr<int[]> disps_;
 };
+
+
+TensorMap2D::TensorMap2D(int n1, int n2, MPI_Comm comm)
+ : n1_(n1), n2_(n2), comm_(comm), counts_(nullptr), disps_(nullptr)
+{
+  MPI_Comm_rank(comm_,&rank_);
+  MPI_Comm_size(comm_,&nproc_);
+  counts_=std::shared_ptr<int[]>(new int[nproc_]);
+  disps_=std::shared_ptr<int[]>(new int[nproc_+1]);
+  lidx chunk= (lidx(n1_)*lidx(n2_))/nproc_;
+  lidx rem  = (lidx(n1_)*lidx(n2_))%nproc_;
+  disps_[0]=0;
+  for (int p=0; p<nproc_; p++)
+  {
+    counts_[p] = chunk + (p<rem? 1: 0);
+    disps_[p+1]= disps_[p]+counts_[p];
+  }
+  offset_=disps_[rank_];
+  local_len_=counts_[rank_];
+}
 
