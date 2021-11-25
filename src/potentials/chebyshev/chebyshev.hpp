@@ -1,36 +1,10 @@
 
-#include "qwv_util.hpp"
+#pragma once
 
+#include "../roots.hpp"
 
 namespace qwv{
  namespace discretization{
- 
-    template<typename T>
-    class roots{
-    public:
-        
-        roots() = default;
-        roots(std::size_t N) : N_(N){
-            result.reserve(N);
-         for(auto i :std::views::iota(std::size_t(0)) | std::views::take(N)){
-            this->result.push_back(std::cos(M_PI*(2*i+1)/(2*N)));
-            }
-        }
-        
-        ~roots() = default;
-        
-        auto& operator[](auto i ){
-            return this->result[i];
-        }
-        
-        void free(){
-            return this->result.resize(0);
-        }
-    private:
-        std::size_t N_;
-        std::vector<T> result{};
-    };
-
 
    template<typename T>
    auto constexpr Chebyshev1D(std::size_t& N){
@@ -69,14 +43,6 @@ namespace qwv{
 
      return Chebyshev2D;
    }
-  }
- }
-}
-
-
-
-
-
-
-turn 0;
-}
+  
+ } //end of discretization namespace
+} // end of qwv namespace
