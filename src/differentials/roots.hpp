@@ -1,3 +1,7 @@
+#pragma once
+
+#include <ranges>
+#include <vector>
 
 namespace qwv{
  namespace discretization{
