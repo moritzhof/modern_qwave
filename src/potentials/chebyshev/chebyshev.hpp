@@ -69,30 +69,6 @@ namespace qwv{
 
      return Chebyshev2D;
    }
-
- namespace parallel{
- template<typename T>
- auto constexpr Chebyshev1D(std::size_t& N){
-
-    auto v = std::views::iota(std::size_t(0), N);
-    auto result = qwv::discretization::roots<double>(N);
-    auto Chebyshev = std::vector<double>(N*N,0);
-
-   std::for_each(std::execution::par_unseq, std::begin(v), std::end(v), [&](auto i){
-     for(auto j :std::views::iota(std::size_t(0)) | std::views::take(N)){
-       (i == j) ?
-         Chebyshev[i*N+i] = 0.5*result[i]/(1.0-(result[i]*result[i]))
-       :
-         Chebyshev[i*N+j] = std::cos(M_PI*(i+j))*std::sqrt((1.0-(result[j]*result[j]))/(1.0-(result[i]*result[i])))/(result[i]-result[j]);
-      }
-    });
-     
-   //result.free();
-   return Chebyshev;
- }
- 
- 
- 
   }
  }
 }
@@ -102,31 +78,5 @@ namespace qwv{
 
 
 
-auto main()->int{
-
-std::size_t N = 10;
-//auto cheby = util::to_vector(qwv::discretization::Chebyshev<double>(N));
-auto cheby1D = qwv::discretization::Chebyshev1D<double>(N);
-auto cheby2D = qwv::discretization::Chebyshev2D<double>(N);
-    
-auto par_cheby1D = qwv::discretization::parallel::Chebyshev1D<double>(N);
-
-    for(const auto& i : cheby1D){
-        std::cout<< i << ' ';
-    }
-    std::cout<<'\n';
-    std::cout << " ###### COMPLETED: PARALLEL 1D ######## \n";
-    for(const auto& i : par_cheby1D){
-        std::cout<< i << ' ';
-    }
-    std::cout<<'\n';
-    
-    std::cout << " ###### COMPLETED: 1D ######## \n";
-    for(const auto& i : cheby2D){
-      std::cout<< i << ' ';
-    }
-    std::cout<<'\n';
-
-    std::cout << " ###### COMPLETE ######## \n";
-return 0;
+turn 0;
 }
