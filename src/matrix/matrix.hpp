@@ -43,17 +43,14 @@ private:
 public:
 
  matrix() = default;
- matrix(std::size_t rows, std::size_t cols) : _row(rows), _col(cols),
-        _map(rows,cols) {
+    
+ matrix(std::size_t rows, std::size_t cols) : _row(rows), _col(cols), _map(rows,cols) {
    mat.resize(rows*cols);
-   std::for_each(exec,
-                _map.begin(), _map.end(),
-        [this](auto idx){auto [i,j]=idx; (*this)(i,j) = static_cast<T>(0.0);});
+   std::for_each(exec, _map.begin(), _map.end(),
+        [&](auto idx){auto [i,j]=idx; (*this)(i,j)= static_cast<T>(1.0);});
    }
-/* these don't set _row and/or _col?
-  matrix(std::vector<T> v) : mat{ v } {}
-  matrix(std::vector<T> && v) : mat{ std::move(v) } {}
-*/
+
+    
   matrix(std::initializer_list<T> matx) : _row(matx.size()), _col(1), _map(_row, _col) {
     mat.reserve(_row*_col);
     std::for_each(exec,std::begin(matx), std::end(matx), [&](int i){
@@ -61,18 +58,20 @@ public:
      });
   }
     
-    matrix(const matrix& A) :_row{A._row}, _col{A._col}, mat{A.mat} {}
-    matrix(matrix&& A) :_row{A._row}, _col{A._col}, mat{A.mat} {}
+    matrix(const matrix& A) = default; //:_row{A._row}, _col{A._col}, mat{A.mat} {}
+    matrix(matrix&& A) = default; //:_row{A._row}, _col{A._col}, mat{A.mat} {}
     
-  matrix(std::initializer_list<std::initializer_list<T>> matx) : _row(matx.size()) ,
-     _col(matx.begin()->size()), mat( matx.size() * matx.begin()->size() ), _map(_row, _col) {
 
-     std::for_each(exec, _map.begin(), _map.end(),
-     [&](auto const& it){
-        auto [i,j]=*it;
-        mat[it.pos] = ((matx.begin()+i)->begin())[j] ;
-      });
-    }
+    matrix(std::initializer_list<std::initializer_list<T>> matx) : _row(matx.size()) ,
+       _col(matx.begin()->size()), mat( matx.size() * matx.begin()->size() ) {
+
+       auto v = std::views::iota(static_cast<std::size_t>(0), _row);
+       std::for_each(std::execution::par_unseq, std::begin(v), std::end(v), [&](auto i){
+        for(int j = 0; j < _col; ++j)
+          mat[i*_col+j] = ((matx.begin()+i)->begin())[j] ;
+        });
+      }
+
   ~matrix(){}
     
     matrix<T>& operator = (matrix<T> const& rhs){
@@ -133,29 +132,33 @@ public:
     return result;
   }
 
+    
+    matrix<T> operator+(matrix<T>& B){
 
-  matrix<T> operator+(matrix<T> const & B){
+      assert(_row == B._row && _col == B._col);
+      matrix result(B._row, B._col);
+      auto v = std::views::iota(static_cast<std::size_t>(0), _row*_col);
+     std::for_each(std::execution::par_unseq, std::begin(v), std::end(v), [&](auto i){
+      
+         for(int j = 0; j < _col; ++j){
+            result[i*_col+j] = this->mat[i*_col+j]+B[i*_col+j];
+          }
+        });
 
-    assert(_row == B._row && _col == B._col);
-    matrix<T> result(B._row, B._col);
-    std::for_each(exec,_map.begin(),_map.end(), [&](auto idx){
-          auto [i,j]=idx;
-          result(i,j) = (*this)(i,j) + B(i,j);
-      });
-      std::cout << "OPERATOR CALLED\n";
-      return result;
-  }
+        return result;
+    }
 
-  matrix<T> operator-(matrix<T>& B){
+    matrix<T> operator-(matrix<T>& B){
 
-    assert(_row == B._row && _col == B._col);
-    matrix<T> result(_row, _col);
-    std::for_each(exec,_map.begin(),_map.end(), [&](auto idx){
-          auto [i,j]=idx;
-          result(i,j) = (*this)(i,j)-B(i,j);
-      });
-      return result;
-  }
+      assert(_row == B._row && _col == B._col);
+      matrix<T> result(_row, _col);
+      auto v = std::views::iota(static_cast<std::size_t>(0), _row*_col);
+      std::for_each(std::execution::par_unseq, std::begin(v), std::end(v), [&](auto i){
+         result[i] = this->mat[i]-B[i];
+    });
+        return result;
+    }
+
     
 
 
@@ -167,8 +170,8 @@ public:
 
     for(int i = 0; i < _mat._row; ++i){
       for(int j = 0; j < _mat._col; ++j){
-        os << _mat.mat[j*_mat._col+i] << "  "; } os << '\n';
-        //std::setprecision(std::numeric_limits<T>::digits10+1)
+        os <<  std::setprecision(std::numeric_limits<T>::digits10+1)<< _mat.mat[j*_mat._col+i] << "  "; } os << '\n';
+       
     }
     return os;
   }
@@ -229,3 +232,45 @@ matrix<T> matrix<T>::submat(std::size_t startrow, std::size_t endrow, int startc
 
 
 } // end of namespace qwv
+
+
+/*
+ 
+ matrix(std::initializer_list<std::initializer_list<T>> matx) : _row(matx.size()) ,
+       _col(matx.begin()->size()), _map(matx.size(), matx.begin()->size()) {
+
+        mat.reserve(_row*_col);
+        std::for_each(exec, _map.begin(), _map.end(), [&](auto iter){
+            auto[i,j] = iter;
+            mat[i*_col+j] = ((matx.begin()+i)->begin())[j];
+            std::cout << "djsfhsadkljhfkjsadhfkjsadh" << std::endl;
+        });
+
+   }
+
+ 
+   matrix<T> operator+(matrix<T> const& B){
+ 
+     assert(_row == B._row && _col == B._col);
+     matrix<T> result(B._row, B._col);
+     std::for_each(exec, _map.begin(),_map.end(), [&, this](auto const idx){
+           auto [i,j]=idx;
+           //result(i,j) = (*this)(i,j) + B(i,j);
+         result(i,j) = mat[i*_col+j] + B(i,j);
+       });
+       std::cout << "OPERATOR CALLED\n";
+       return result;
+   }
+ 
+   matrix<T> operator-(matrix<T>& B){
+ 
+     assert(_row == B._row && _col == B._col);
+     matrix<T> result(_row, _col);
+     std::for_each(exec,_map.begin(),_map.end(), [&](auto idx){
+           auto [i,j]=idx;
+           result(i,j) = (*this)(i,j)-B(i,j);
+       });
+       return result;
+   }
+ 
+ */

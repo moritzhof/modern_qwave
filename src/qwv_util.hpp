@@ -40,6 +40,14 @@ namespace qwv{
        return g(f(std::forward<decltype(args)>(args)...));
    };
   }
+  
+  template<typename T>
+  void print_vector(std::vector<T> const& vec){
+      for(const auto & i : vec){ std::cout << i << ' '; }
+      std::cout << '\n';
+  }
+  
+  
  } //end of util namespace
 } //end of qwv namespace
  /* qwv_util_hpp */

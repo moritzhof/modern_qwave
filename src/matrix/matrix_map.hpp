@@ -26,7 +26,7 @@ public:
 
   // note: this will throw an exception if element (i,j) is not on the present MPI process in comm
   lidx operator()(int i, int j) const {return lid(i,j);}
-
+  
   lidx lid(int i, int j) const {
     pos_type pos=iter(std::tuple{i,j},std::tuple{n1_,n2_}).pos;
     lidx idx=lidx(pos-offset_);
@@ -41,7 +41,8 @@ public:
 
   lidx num_local_elements() const { return local_len_;}
   lidx num_global_elements() const { return n1_*n2_;}
-
+    
+    
 private:
   int n1_, n2_;
   lidx offset_, local_len_;
