@@ -12,7 +12,6 @@ namespace qwv{
    template<typename T>
    auto constexpr Chebyshev1D(auto&& roots, std::size_t N){
 
-       //auto roots = qwv::discretization::roots<T>{N};
        
        qwv::matrix<double> Chebyshev(N, N);
        for(auto i :std::views::iota(std::size_t(0)) | std::views::take(N)){
@@ -32,9 +31,8 @@ namespace qwv{
    auto constexpr Chebyshev2D(auto&& roots, std::size_t N){
 
      auto Chebyshev1D = qwv::differential::Chebyshev1D<double>(roots, N);
-     //auto roots = qwv::discretization::roots<double>(N);
 
-       qwv::matrix<T> Chebyshev2D(N,N); // = std::vector<double>(N*N,0);
+       qwv::matrix<T> Chebyshev2D(N,N);
        for(auto i :std::views::iota(std::size_t(0)) | std::views::take(N)){
          for(auto j :std::views::iota(std::size_t(0)) | std::views::take(N)){
              (i == j) ?
@@ -53,7 +51,7 @@ namespace qwv{
      
        std::vector<T> A11; A11.reserve(N);
        qwv::matrix<T> chebyshev1DTB(N,N);
-       //auto roots = qwv::discretization::roots<T>{N};
+       
        auto Chebyshev1D = qwv::differential::Chebyshev1D<double>(roots, N);
      
        for(auto i : std::views::iota(std::size_t(0)) | std::views::take(N) ){
@@ -71,8 +69,6 @@ namespace qwv{
  template<typename T>
  auto constexpr Chebyshev2DTB(auto&& roots, std::size_t N, double L){
 
-     //TensorMap2D map(N,N,MPI_COMM_WORLD);
-
      std::vector<T> A21, A22; A21.reserve(N); A22.reserve(N);
      qwv::matrix<T> chebyshev2DTB(N,N);
      qwv::matrix<T> temp(N,N);
@@ -87,8 +83,6 @@ namespace qwv{
 
      for(auto i :std::views::iota(std::size_t(0)) | std::views::take(N)){
       for(auto j :std::views::iota(std::size_t(0)) | std::views::take(N)){
- //   std::for_each(std::execution::par_unseq, map.begin(), map.end(), [&](auto idx){
- //       auto[i,j] = idx;
            chebyshev2DTB(i,j) = A22[i]*Chebyshev2D(i,j);
            temp(i,j)          = A21[i]*Chebyshev1D(i,j);
            chebyshev2DTB(i,j) = temp(i,j) + chebyshev2DTB(i,j);

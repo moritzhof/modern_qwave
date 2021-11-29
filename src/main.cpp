@@ -12,6 +12,7 @@
 #include "potentials/gaussian/gaussian.hpp"
 
 
+#include "operations/dgemm.hpp"
 auto main(int argc, char* argv[])->int{
     
     
@@ -32,8 +33,10 @@ auto main(int argc, char* argv[])->int{
         
         
     auto gaussian = qwv::potential::gaussian2D<double>(N, N, L, L, 0.5, 0.5, 0.5);
-    std::cout << cheby1D << '\n';
+  //  auto gaussian2 = qwv::potential::gaussian4D<double>(N, N, L, L, 0.5, 0.5, 0.5);
         
+        
+    std::cout << cheby1D << '\n';
     std::cout << "###########################\n";
     std::cout << cheby2D << std::endl;
     std::cout<<'\n';
@@ -41,8 +44,11 @@ auto main(int argc, char* argv[])->int{
     std::cout << cheby1DTB << std::endl;
     std::cout << "###########################\n";
     std::cout << cheby2DTB << std::endl;
-        std::cout << "###########################\n";
-        qwv::util::print_vector(gaussian); 
+    std::cout << "###########################\n";
+    qwv::util::print_vector(gaussian);
+        
+//    std::cout << "###########################\n";
+//    qwv::util::print_vector(gaussian2);
         
 //        qwv::matrix<double> mat(N, N);
 //        std::cout << mat << std::endl;

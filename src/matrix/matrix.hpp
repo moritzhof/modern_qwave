@@ -170,8 +170,7 @@ public:
 
     for(int i = 0; i < _mat._row; ++i){
       for(int j = 0; j < _mat._col; ++j){
-        os <<  std::setprecision(std::numeric_limits<T>::digits10+1)<< _mat.mat[j*_mat._col+i] << "  "; } os << '\n';
-       
+        os << std::setprecision(std::numeric_limits<T>::digits10+1) << _mat.mat[j*_mat._col+i] << "  "; } os << '\n';
     }
     return os;
   }
