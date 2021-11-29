@@ -1,154 +1,197 @@
 
-#include "ddgemm.hpp"
 
-#include <cassert>
+#include "../operator/operator_base.hpp"
+
+#include <memory>
+
+#ifndef HAVE_PHIST
+#error "this file should not be compiled without the -DHAVE_PHIST lag (set by CMake if phist is found)"
+#endif
+
+#include "phist_config.h"
+#include "phist_kernels.hpp"
+#include "phist_core.hpp"
+#include "phist_jada.hpp"
+#include "phist_MemOwner.hpp"
 
 namespace qwv{
 
-//note: I kept the interface the same for now, parameters that are not used are marked with an underscore in front
-// (for instance I don't do any timing here anymore, and we assume sequential execution)
-void parpack_interface(int n, OperatorBase<double> *A_op, int k,long int calcEigVec, int maxit, double sigma,int p,int randVec, int *iparam, double *dr, double *di,double *eigVecReal, double *eigVecIm, double LEigValReal, double *_tsub,double *_tcomm,int my_rank, int pr,int _ncores){
-    //ARPACK interface to calculate eigenvalues of a real, non-symmetric matrix
-    /* n: Size of the Matrix
+void phist_interface(OperatorBase<double> *A_op,
+        OperatorBase<double> *P_op,
+        const char* jadaOpts_filename,
+        int k,long int calcEigVec,
+        double *dr, double *di,
+        double *eigVecReal, double *eigVecIm)
+{
+    //some typedefs that will make it easier to switch to another data type (like complex<double>)
+    using ST=double;
+    using CT=std::complex<double>;
+    using ps=::phist::ScalarTraits<ST>;
+    using pk=::phist::kernels<ST>;
+    using pc=::phist::core<ST>;
+    using pj=::phist::jada<ST>;
+    //PHIST interface to calculate eigenvalues of a real, non-symmetric matrix
+    //note: we use the same interface here as for parpack to make life easy,
+    //      later on it may be useful to expose some solver parameters and improve
+    //      the parallel matrix construction and post processing.
+    /*
      * k: Number of requested eigenvalues
      * maxit: maximum number of iterations
      * sigma: Eigenvalues close to sigma are calculated -> not implemented yet
      */
 
-        const double  EPS=DBL_EPSILON;
-        int mode,ido,nev,ncv,lworkl,ldv,info,eigs_display,i;
-        double tol,sigmar,sigmai;
-        int32_t rvec, *select;
-        int *nstartInd;
-        double *v, *workd, *workl, *resid,*workev,*temp;
+    // the iflag is the last argument of almost all phist functions and serves the dual purpose
+    // of providing options to the function and letting it report errors back to us.
+    // The PHIST_CHK_IERR macro can be used to catch these errors and print error messages or even a
+    // simple call stack.
+    int iflag=0;
 
-        int ipntr[14]={0};
-        mode=1;                        //calculate largest eigenvalue
-        ido=0;                         //reverse communication parameter, initial value
-    //    p=fmin(fmax(2*k+1,20),n);        //number of Lanczos vectors
-    //    maxit=fmax(300,ceil(2*n/fmax(p,1)));
-        const char* bmat="I";                    //standard eigenvalue problem
-        const char* which="LM";                    //eigenvalues with largest magnitude
-        const char* howmny="A";                    //Compute NEV Ritz vectors (no Schur vectors)
-        nev=k;                         //number of requested eigenvalues
-        ncv=p;                        //number of Lanczos vectors
-        iparam[0]=1;            //ishift=1, no handling of ido=3 necessary
-        iparam[2]=maxit;        //maximal number of iterations
-        iparam[6]=mode;
-        rvec=calcEigVec;                    //only Ritz values, no Ritz/Schur vectors are calculated
-        lworkl=3*p*(p+2);
-        sigmar=sigma;
-        sigmai=0;
+    // options for the Jacobi-Davidson eigensolver
+    phist_jadaOpts opts;
+    phist_jadaOpts_setDefaults(&opts);
+    PHIST_CHK_IERR(phist_jadaOpts_fromFile(&opts, jadaOpts_filename, &iflag),iflag);
 
-        int nloc = (int)A_op->num_local_rows();
-        // we don't support parallelism here right now,
-        // but it would be easy to add because we already
-        // call parpack instead of arpack.
-        assert(nloc==n);
-
-        //Initialize PNAUPD paramareters
-        ldv=nloc;
-        select=(int32_t*)calloc(p,sizeof(int));
-        v=(double*)calloc(nloc*ncv,sizeof(double));
-        workd=(double*)calloc(3*nloc,sizeof(double));
-        workl=(double*)calloc(lworkl,sizeof(double));
-        resid=(double*)calloc(nloc,sizeof(double));
-        workev=(double*)calloc(3*ncv,sizeof(double));
-
-        printf("Calloc resources\n");
-
-        tol=EPS;
-        info=0; //0 if initial vector resid is not initialised
-        if(randVec==1){
-            info=1;
-            generateRandomVector4D(n,nloc,0,resid);
-        }
-        eigs_display=2;
-
-
-        long int len_bmat=strlen(bmat);
-        long int len_which=strlen(which);
-        long int len_howmny=strlen(howmny);
-
-        //Convert MPI communicator from C handle to Fortran integer
-        MPI_Fint comm;
-        comm=MPI_Comm_c2f(MPI_COMM_WORLD);
-
-//former par_parpack_interface
-{
-    FILE *fpStat;
-    const char* fpStatName="Status.txt";
-    if(my_rank==0){
-        fpStat=fopen(fpStatName,"a+");
-        fprintf(fpStat,"------------------ STATUS ---------------------\n\n");
-        fclose(fpStat);
-        }
-
-
-    int eigs_iter=0;
-    while(ido!=99){
-        pdnaupd_(&comm,&ido,(char*)bmat,&nloc,(char*)which,&nev,&tol,resid,&ncv,v,&ldv,iparam,ipntr,workd,workl,&lworkl,&info,len_bmat,len_which);
-        if (info<0){
-            //ERROR: dnaupd
-            if (my_rank==0){
-                printf("ARPACK dnaupd routine error for info= %i\n",info);
-                }
-            break;
-            }
-            // right-hand side x, left-hand side y for operation y=A*x
-            double* rhs = workd+ipntr[0]-1;
-            double* lhs = workd+ipntr[1]-1;
-            switch (ido){
-                case -1:
-                  // same as 1
-                case 1:
-                    A_op->apply(1.0,rhs, 0.0, lhs);
-                    break;
-                case 99:
-                    break;
-                    //ARPACK has converged
-                default:
-                    //ERROR unknown ido
-                    printf("Unknown ido after calling dnaupd routine\n");
-                    break;
-                }
-
-            eigs_iter++;
-            if (eigs_display==0 && my_rank==0){
-                displayRitzValues(ipntr,eigs_iter,ido,ncv,nev,workl);
-                }
-            if (eigs_display==1 && my_rank==0){
-                printf("Iteration %i for the Ritz values of the %i-by-%i matrix:\n",eigs_iter,ncv,ncv);
-                }
-            if(eigs_iter%1000==0 && my_rank==0){
-                fpStat=fopen(fpStatName,"a+");
-                fprintf(fpStat,"Iteration %i: a few Ritz values of the %i-by-%i matrix:\n",eigs_iter,ncv,ncv);
-                for(int j=ncv-1;j>fmax(ncv-nev-1,ncv-30-1);j--){
-                    fprintf(fpStat,"%.12f %.5f\n",workl[ipntr[5]+j-1]+LEigValReal,workl[ipntr[6]+j-1]);
-                    }
-                fprintf(fpStat,"%.12f %.5f\n",workl[ipntr[5]+ncv-nev-1]+LEigValReal,workl[ipntr[6]+ncv-nev-1]);
-                fprintf(fpStat,"\n");
-                fclose(fpStat);
-                }
-        }// end while
-
-    if(my_rank==0){
-        fpStat=fopen(fpStatName,"a+");
-        fprintf(fpStat,"Total number of converged Ritz values: %i\n",iparam[4]);
-        fclose(fpStat);
-        if(info!=0){
-            printf("Error durring pndaupd routine, info=%i\n",info);
-            printf("Number of Arnoldi iterations taken: %i\n",iparam[2]);
-            }
-        }
-    pdneupd_(&comm,&rvec,(char*)howmny,select,dr,di,v,&ldv,&sigmar,&sigmai,workev,(char*)bmat,&nloc,(char*)which,
-        &nev,&tol,resid,&ncv,v,&ldv,iparam,ipntr,workd,workl,&lworkl,&info,len_howmny,len_bmat,len_which);
-    if(info!=0){
-        printf("Error during pdneupd routine\n");
-        }
-} // end former par_parpack_intrface
-
-        free(select);free(v);free(workl);free(resid);free(workev);
-        return;
+    // all iterative solvers in phist take the matrix in form of an abstract operator so that they are
+    // not restricted to the internal sparse matrix format.
+    phist_DlinearOp *A_phist = QWaves::wrap(A_op);
+    phist_DlinearOp *P_phist = nullptr;
+    if (P_op)
+    {
+    P_phist = QWaves::wrap(P_op);
     }
+
+    phist_const_map_ptr map=A_phist->domain_map;
+    phist_const_comm_ptr comm=nullptr;
+    PHIST_CHK_IERR(phist_map_get_comm(map,&comm,&iflag),iflag);
+    MPI_Comm mpi_comm;
+    PHIST_CHK_IERR(phist_comm_get_mpi_comm(comm,&mpi_comm,&iflag),iflag);
+    int rank, nproc;
+    PHIST_CHK_IERR(phist_comm_get_rank(comm,&rank,&iflag),iflag);
+    PHIST_CHK_IERR(phist_comm_get_size(comm,&nproc,&iflag),iflag);
+
+    phist_lidx nloc;
+    phist_gidx nglob;
+
+    PHIST_CHK_IERR(phist_map_get_local_length(map,&nloc,&iflag),iflag);
+    PHIST_CHK_IERR(phist_map_get_global_length(map,&nglob,&iflag),iflag);
+
+    opts.numEigs=k;
+
+    // Q must have at least numEigs+blockSize-1 vectors,
+    // but if we reserve more, phist will return a larger
+    // basis that we can use to get better eigenvectors or
+    // to restart for different parameters
+    int nQ=opts.minBas;
+
+    // setup necessary vectors and matrices for the schur form
+    ps::mvec_t* Q = NULL;
+    PHIST_CHK_IERR(pk::mvec_create(&Q,map,nQ,&iflag),iflag);
+  // C++ trick to automatically delete the underlying object at the end of the scope
+  // although we'ld have to call a C function to do so.
+  phist::MvecOwner<ST> _Q(Q);
+  ps::sdMat_t* R = NULL;
+  PHIST_CHK_IERR(pk::sdMat_create(&R,nQ,nQ,comm,&iflag),iflag);
+  phist::SdMatOwner<ST> _R(R);
+  ps::magn_t resNorm[nQ];
+  CT z_ev[nQ];
+
+
+  // if there is a file called phist_Q.bin, read it as starting space
+  // otherwise, use a random initial vector v0
+  ps::mvec_t* v0 = NULL;
+//  if (FILE *file = fopen("phist_Q.bin", "r"))
+//        {
+//          fclose(file);
+//          pk::mvec_read_bin(Q,"phist_Q.bin",&iflag);
+//          if (iflag==PHIST_SUCCESS)
+ //         {
+ //           PHIST_SOUT(PHIST_INFO,"...starting Jacobi-Davidson from phist_Q.bin file. If that is not what you want, remove it from the run directory.");
+ //           opts.v0=Q;
+ //         }
+ //         else
+ //         {
+ //           PHIST_SOUT(PHIST_INFO,"...there is a phist_Q.bin file in your run directory, but it is ignored because it can't be read (may have the wrong dimensions)");
+ //         }
+ //   }
+ //   else
+ //   {
+      // setup random start vector
+      PHIST_CHK_IERR(pk::mvec_create(&v0,map,1,&iflag),iflag);
+      PHIST_CHK_IERR(pk::mvec_random(v0,&iflag),iflag);
+      opts.v0=v0;
+   // }
+
+    phist::MvecOwner<ST> _v0(v0);
+
+  // used to calculate explicit residuals
+  ps::mvec_t* res;
+  PHIST_CHK_IERR(pk::mvec_create(&res,map,nQ,&iflag),iflag);
+
+    // will store how many iterations were performed and how many eigenpairs converged
+    int nev=opts.numEigs;
+    int nit=opts.maxIters;
+
+    double resNorms[nev];
+    pj::subspacejada(A_phist, P_phist, opts,
+                         Q, R,
+                         z_ev, resNorms,
+                         &nev, &nit, &iflag);
+
+  if (rank==0)
+  {
+    if (iflag!=0) std::cout << "non-zero return code from subspacejada: "<<iflag<<std::endl;
+    std::cout << "number of converged eigenpairs: "<<nev<<std::endl;
+  }
+  for (int i=0; i<nev; i++)
+  {
+    dr[i]=::phist::ScalarTraits<CT>::real(z_ev[i]);
+    di[i]=::phist::ScalarTraits<CT>::imag(z_ev[i]);
+  }
+  for (int i=nev; i<k; i++)
+  {
+    dr[i]=ST(0);
+    di[i]=ST(0);
+  }
+
+//  PHIST_CHK_IERR(pk::mvec_write_bin(Q,"phist_Q.bin",&iflag),iflag);
+
+  // for subspacejada, we have to explicitly compute the eigenvectors from the basis Q if we want them:
+  if (calcEigVec!=0)
+  {
+    ps::mvec_t *X=NULL, *AX=NULL;
+    PHIST_CHK_IERR(pk::mvec_create(&X, map, nev, &iflag),iflag);
+    PHIST_CHK_IERR(pk::mvec_create(&AX, map, nev, &iflag),iflag);
+    phist::MvecOwner<ST> _X(X), _AX(AX);
+    PHIST_CHK_IERR(pc::ComputeEigenvectors(Q,R,X,&iflag),iflag);
+    /* the calling function expects the eigenvectors to be replicated on all MPI ranks right now,
+       so we do that manually
+     */
+    std::unique_ptr<ST> X_localdata(new ST[nloc*nev]);
+    PHIST_CHK_IERR(phist_Dmvec_get_data(X, X_localdata.get(), nloc, 0, &iflag), iflag);
+
+    // create count and offset arrays from the local vector lengths.
+    // We need this later for the Allgatherv operation (note that not
+    // all MPI ranks may have the same nloc).
+    int inloc=(int)nloc;
+    int counts[nproc], disps[nproc+1];
+    PHIST_CHK_IERR(iflag=MPI_Allgather(&nloc, 1, MPI_INT, counts, 1, MPI_INT, mpi_comm),iflag);
+    disps[0]=0;
+    for (int i=0; i<nproc; i++) disps[i+1]=disps[i]+counts[i];
+
+    for (int j=0; j<nev; j++)
+    {
+      PHIST_CHK_IERR(iflag=MPI_Allgatherv(X_localdata.get()+j*nloc, nloc, MPI_DOUBLE,
+                  eigVecReal+j*nglob, counts, disps, MPI_DOUBLE, mpi_comm),iflag);
+    }
+  }
+  // clean up
+  PHIST_CHK_IERR(phist_DlinearOp_destroy(A_phist, &iflag), iflag);
+  if (P_phist)
+  {
+    PHIST_CHK_IERR(phist_DlinearOp_destroy(P_phist, &iflag), iflag);
+  }
+  return;
 }
+
+
+} // end of namespace qwv
