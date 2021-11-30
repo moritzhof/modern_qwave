@@ -1,7 +1,6 @@
 
 #pragma once
-#include"../operations/dgemm.hpp"
-
+#include "../operations/dgemm.hpp"
 #include "../matrix/matrix.hpp"
 
 #ifdef HAVE_PHIST
@@ -155,4 +154,4 @@ namespace qwv
     return op;
   }
 #endif /* HAVE_PHIST */
-}// namespace qwv
+}// namespace Qqwv

@@ -58,6 +58,28 @@ namespace qwv{
      std::size_t N_;
      std::vector<T> result{};
  };
+ 
+#ifdef __CUDACC__
+ namespace cuda{
+ 
+    template<typename T>
+    class roots{
+     
+        __device__
+        roots(T* roots, std::size_t N): N_(N){
+            int i = threadIdx.x + blockIdx.x * blockDim.x;
+            if (i < N){
+                roots[i] = std::cos(M_PI*(2*i+1)/(2*N));
+        }
+     }
+        
+    private:
+        std::size_t N_;
+        std::vector<T> roots{};
+        
+  };
+ }
+#endif
     
   } //end of discretization namespace
 } // end of qwv namespace

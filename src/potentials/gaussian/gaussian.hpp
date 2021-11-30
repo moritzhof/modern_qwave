@@ -1,6 +1,6 @@
 
 #pragma once
-//#include <ranges>
+
 
 #include "../../differentials/roots.hpp"
 #include "../../matrix/matrix.hpp"
