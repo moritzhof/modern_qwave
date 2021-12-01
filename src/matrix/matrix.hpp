@@ -138,7 +138,7 @@ public:
       assert(_row == B._row && _col == B._col);
       matrix result(B._row, B._col);
       auto v = std::views::iota(static_cast<std::size_t>(0), _row*_col);
-     std::for_each(std::execution::par_unseq, std::begin(v), std::end(v), [&](auto i){
+      std::for_each(std::execution::par_unseq, std::begin(v), std::end(v), [&](auto i){
       
          for(int j = 0; j < _col; ++j){
             result[i*_col+j] = this->mat[i*_col+j]+B[i*_col+j];
@@ -155,7 +155,7 @@ public:
       auto v = std::views::iota(static_cast<std::size_t>(0), _row*_col);
       std::for_each(std::execution::par_unseq, std::begin(v), std::end(v), [&](auto i){
          result[i] = this->mat[i]-B[i];
-    });
+      });
         return result;
     }
 

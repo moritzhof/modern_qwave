@@ -61,24 +61,12 @@ namespace qwv{
  
 #ifdef __CUDACC__
  namespace cuda{
- 
-    template<typename T>
-    class roots{
-     
-        __device__
-        roots(T* roots, std::size_t N): N_(N){
-            int i = threadIdx.x + blockIdx.x * blockDim.x;
-            if (i < N){
-                roots[i] = std::cos(M_PI*(2*i+1)/(2*N));
-        }
-     }
-        
-    private:
-        std::size_t N_;
-        std::vector<T> roots{};
-        
-  };
- }
+ template<typename T>
+ __global__ void roots(T* _roots, std::size_t N){
+     int i = threadIdx.x + blockIdx.x * blockDim.x;
+     if(i < N) _roots[i] = cos(M_PI*(2*i+1)/(2*N));
+  }
+ } // end of cuda namesapce
 #endif
     
   } //end of discretization namespace

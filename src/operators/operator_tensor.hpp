@@ -3,9 +3,9 @@
 
 #include "operator_base.hpp"
 #include "../operations/dgemm.hpp"
-//#include "mMatrixOperation.hpp"
+
 #include <ostream>
-#include"transposed.hpp"
+
 
 
 namespace qwv{
@@ -13,14 +13,14 @@ namespace qwv{
 #include "mkl_trans.h"
 
 template<typename ST>
-class Kron2D;
+class kron2D;
 
 template<typename T>
-class Kron4D;
+class kron4D;
 
 
 template<typename ST>
-std::ostream& operator<<(std::ostream& os, const Kron2D<ST>& op);
+std::ostream& operator<<(std::ostream& os, const kron2D<ST>& op);
 
 // class representing a '2D' operator of the form
 //
@@ -37,7 +37,7 @@ std::ostream& operator<<(std::ostream& os, const Kron2D<ST>& op);
 // entries of C and D, and of the vector this operator can
 // be applied to.
 template<typename ST>
-class Kron2D: public OperatorBase<ST>
+class kron2D: public OperatorBase<ST>
 {
 public:
 
@@ -45,7 +45,7 @@ public:
   using typename OperatorBase<ST>::gidx;
   using typename OperatorBase<ST>::vector;
 
-  friend std::ostream& operator<<<ST>(std::ostream&, const Kron2D&);
+  friend std::ostream& operator<<<ST>(std::ostream&, const kron2D&);
 
 
   // note: we may want to create a separate operator class
@@ -54,7 +54,7 @@ public:
   // i.e. have a 'leading dimension' other than nrows/ncols.
   using dense_matrix = matrix<ST>;
 
-  Kron2D(int m, const dense_matrix& C_n,
+  kron2D(int m, const dense_matrix& C_n,
          int n, const dense_matrix& D_m,
          std::vector<ST> const& V,
          ST a1, ST a2)
@@ -157,7 +157,7 @@ protected:
 // entries of C and D, and of the vector this operator can
 // be applied to.
 template<typename ST>
-class Kron4D : public OperatorBase<ST>
+class kron4D : public OperatorBase<ST>
 {
 public:
 
@@ -167,7 +167,7 @@ public:
   //! construct from two Kron2D objects C and D,
   //! a diagonal potential matrix V, and scalars a1, a2:
   //! Kron4D = a1*(I (x) C) + a2*(D (x) I) + V
-  Kron4D(const Kron2D<ST>& C, const Kron2D<ST>& D,
+  kron4D(const kron2D<ST>& C, const kron2D<ST>& D,
         std::vector<double> const& V, ST a1, ST a2) :
   C_(C), D_(D), V_(V), a1_(a1), a2_(a2)
  {
@@ -271,13 +271,13 @@ public:
 protected:
 
   double a1_, a2_;
-  Kron2D<ST> C_;
-  Kron2D<ST> D_;
+  kron2D<ST> C_;
+  kron2D<ST> D_;
   std::vector<ST> V_;
 };
 
 template<typename ST>
-std::ostream& operator<<(std::ostream& os, const Kron2D<ST>& op)
+std::ostream& operator<<(std::ostream& os, const kron2D<ST>& op)
 {
   os << "% BEGIN MATLAB/OCTAVE CODE"<<std::endl;
   os << "% Operator a1*(I_m (x) C_n) + a2*(D_m (x) I_n) + V"<<std::endl;
