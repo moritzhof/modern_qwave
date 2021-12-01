@@ -9,8 +9,7 @@ using dense_matrix = qwv::matrix<double>;
 
   // Construct an operator representation of the three-body problem.
   // Interface equivalent to buildTotalSparseMatrix2D
-  std::unique_ptr<qwv::kron2D<double>> buildOperator2D(std::size_t nR, std::size_t nr, double LR, double Lr, int parity1, int parity2,
-                                                   double a1, double a2, std::vector<double> const& V){
+  std::unique_ptr<qwv::kron2D<double>> buildOperator2D(std::size_t nR, std::size_t nr, double LR, double Lr, int parity1, int parity2, double a1, double a2, std::vector<double> const& V){
 
          auto rootsR = qwv::discretization::roots<double>{nR};
          auto rootsr = qwv::discretization::roots<double>{nr};
