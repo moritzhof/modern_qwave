@@ -33,6 +33,10 @@ auto read_file(std::string& filename, std::size_t& nrow, std::size_t& ncol) {
   return data;
 }
 
+namespace qwv{
+namespace test{
+
+
 template<typename T>
 void compare(std::size_t N, auto& compare1, auto& compare2, T tol = std::numeric_limits<T>::epsilon() ){
     
@@ -46,4 +50,33 @@ void compare(std::size_t N, auto& compare1, auto& compare2, T tol = std::numeric
     else{
         std::cout << "\033[1;31m TEST FAILED \033[0m\n";
     }
+}
+
+template<typename T>
+void compare_vector(std::size_t N, auto& compare1, auto& compare2, T tol = std::numeric_limits<T>::epsilon() ){
+    
+    auto result{0.0};
+
+    auto i = std::views::iota(std::size_t(0), N);
+    if( std::ranges::all_of(std::begin(i), std::end(i), [&](auto i){
+        result = std::fabs(compare1[i]-compare2[i]);
+        return result < tol; })){
+            std::cout << "\033[1;32m TEST PASSED \033[0m\n";}
+    else{
+        std::cout << "\033[1;31m TEST FAILED \033[0m\n";
+    }
+}
+
+
+ }
+}
+
+
+std::vector<double> even_grid(int npts, double a, double b){
+  std::vector<double> grid;
+  double dx = (b-a)/(npts-1.0);
+  for(int i = 0; i < npts; ++i){
+    grid.push_back(a+i*dx);
+  }
+  return grid;
 }

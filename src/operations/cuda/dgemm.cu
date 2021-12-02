@@ -16,7 +16,7 @@ namespace qwv{
      
      typedef gemm::blas_scaled_epilogue<double, double, double> gemm_op_t;
      
-     typedef block_task< block_task_policy_t, double, double, matrix_transform_t::Transpose, 4,     matrix_transform_t::NonTranspose, 4, gemm_op_t, 4, true > block_task_t;
+     typedef block_task< block_task_policy_t, double, double, matrix_transform_t::Transpose, 4, matrix_transform_t::NonTranspose, 4, gemm_op_t, 4, true > block_task_t;
 
      __shared__ block_task_t::scratch_storage_t smem;
 

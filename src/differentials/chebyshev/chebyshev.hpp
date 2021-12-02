@@ -12,7 +12,6 @@ namespace qwv{
    template<typename T>
    auto constexpr Chebyshev1D(auto&& roots, std::size_t N){
 
-       
        qwv::matrix<double> Chebyshev(N, N);
        for(auto i :std::views::iota(std::size_t(0)) | std::views::take(N)){
          for(auto j :std::views::iota(std::size_t(0)) | std::views::take(N)){
@@ -22,8 +21,6 @@ namespace qwv{
          Chebyshev(i,j) = std::cos(M_PI*(i+j))*std::sqrt((1.0-(roots[j]*roots[j]))/(1.0-(roots[i]*roots[i])))/(roots[i]-roots[j]);
          }
        }
-       
-     roots.free();
      return Chebyshev;
    }
  

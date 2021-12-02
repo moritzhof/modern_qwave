@@ -4,6 +4,7 @@
 #include "../qwv_types.hpp"
 #include "../coord/coord.hpp"
 
+#include <memory>
 #include <mpi.h>
 
 

@@ -62,7 +62,7 @@ namespace qwv{
 #ifdef __CUDACC__
  namespace cuda{
  template<typename T>
- __global__ void roots(T* _roots, std::size_t N){
+ __device__ void roots(T* _roots, std::size_t N){
      int i = threadIdx.x + blockIdx.x * blockDim.x;
      if(i < N) _roots[i] = cos(M_PI*(2*i+1)/(2*N));
   }

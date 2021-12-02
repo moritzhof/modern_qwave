@@ -11,8 +11,11 @@
 
 #include "potentials/gaussian/gaussian.hpp"
 
-
+#include "operators/operator_kronecker.hpp"
 #include "operations/dgemm.hpp"
+
+#include "preconditioner/sylvester.hpp"
+
 auto main(int argc, char* argv[])->int{
     
     
