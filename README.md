@@ -20,13 +20,14 @@ Qwaves is a quantum simulations to for higher-dimensional three body problems
 $ cmake ..
 ```
 
-# Usage
+## Usage
 ```cpp
 auto chebyshev = qwv::differential::Chebyshev1D(range, N);
 ```
-# Developers
+## Developers
 * Moritz Travis Hof:
      - German Aerospace Agency: High Performance Computing : Parallel Algorithms and Numerics
      - Technical University of Delft - Department of Applied Mathematics
+     
 * Dr. Jonas Thies:
      -Technical University of Delft - Department of Applied Mathematics
