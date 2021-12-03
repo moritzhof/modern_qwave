@@ -1,14 +1,14 @@
 #ifdef __CUDACC__
 
 #include "cutlass/gemm/device/gemm.h"
-
+#include <cublas_v2.h>
 /*########################################################
       These implementations assuming column-major order
  ########################################################*/
 
 namespace qwv{
  namespace cuda{
- 
+  
  __global__
  void dgemm1(int M, int N, int K, double alpha, double const *A, double const *B, double beta, double *C) {
      
@@ -41,4 +41,43 @@ namespace qwv{
  } // end of cuda namespace
 } // end of qwv namespace
 
+namespace qwv{
+ namespace cublas{
+ void dgemm1(const qwv::cuda::device_ptr<double> A, const qwv::cuda::device_ptr<double> B, qwv::cuda::device_ptr<T> C,
+            const int m, const int k, const int n) {
+       int lda=m,ldb=k,ldc=m;
+       const double alf = 1;
+       const double bet = 0;
+       const double *alpha = &alf;
+       const double *beta = &bet;
+ 
+
+      cublasHandle_t handle;
+      cublasCreate(&handle);
+ 
+      cublasDgemm(handle, CUBLAS_OP_T, CUBLAS_OP_N, m, n, k, alpha, A, lda, B, ldb, beta, C, ldc);
+ 
+     cublasDestroy(handle);
+    }
+ 
+ 
+ void dgemm2(const qwv::cuda::device_ptr<double> A, const qwv::cuda::device_ptr<double> B, qwv::cuda::device_ptr<T> C,
+            const int m, const int k, const int n) {
+     
+       int lda=m,ldb=k,ldc=m;
+       const double alf = 1;
+       const double bet = 0;
+       const double *alpha = &alf;
+       const double *beta = &bet;
+ 
+
+      cublasHandle_t handle;
+      cublasCreate(&handle);
+ 
+      cublasDgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, m, n, k, alpha, A, lda, B, ldb, beta, C, ldc);
+ 
+     cublasDestroy(handle);
+    }
+ } // end of cuda namespace
+} // end of qwv namespace
 #endif
