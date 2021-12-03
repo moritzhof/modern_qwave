@@ -34,7 +34,12 @@ std::size_t N = ... ;
 auto roots = qwv::discretization::roots<double>{N}
 auto chebyshev = qwv::differential::Chebyshev1D<double>(roots, N);
 
-// CUDA
+// CUDA: host: g++11.1 or device: with Nvidia nvc++ compiler with -stdpar flag
+auto roots = qwv::discretization::roots<double>{N}
+auto chebyshev = qwv::differential::parallel::Chebyshev1D<double>(roots, N);
+
+//CUDA NVCC
+TO DO add example
 
 ```
 ## Developers
