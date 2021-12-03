@@ -12,7 +12,9 @@ Qwaves++ is a computationally and numerically efficient approach to determine bi
 
 ## Dependencies
 * C++20
-* Phist with Trilinos
+* MPI
+* Math Kernel Library (MKL)
+* Phist with Trilinos (see https://bitbucket.org/essex/phist/wiki/Home )
 * cuBLAS or CUTLASS
 
 ## Setup
@@ -20,7 +22,7 @@ Qwaves++ is a computationally and numerically efficient approach to determine bi
 $ cmake ..
 ```
 
-### running with phist
+### Running with Phist
 
 It is important, after building qwaves++, to copy the jadaOpts file into the build folder you made for qwaves++, otherwise, the proper eigenvalues will not be found.
 
