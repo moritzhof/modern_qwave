@@ -47,7 +47,10 @@ auto chebyshev = qwv::differential::parallel::Chebyshev1D<double>(roots, N);
 
 //CUDA NVCC
 TO DO add example
-
+auto roots = qwv::cuda::device_memory<double>::allocate_vector(N);
+auto chehyshev = qwv::cuda::device_memory<double>::allocate_matrix(N);
+qwv::differential::cuda::Chebyshev1D<double><<<blocks,threads>>>(cheby1D, roots, N );
+qwv::cuda::synchronize();
 ```
 ## Developers
 * Moritz Travis Hof:
