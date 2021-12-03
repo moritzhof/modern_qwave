@@ -31,7 +31,7 @@ auto chebyshev = qwv::differential::Chebyshev1D<double>(roots, N);
 ```
 ## Developers
 * Moritz Travis Hof:
-     - German Aerospace Agency: High Performance Computing : Parallel Algorithms and Numerics
+     - German Aerospace Agency: High Performance Computing - Parallel Algorithms and Numerics
      - Technical University of Delft - Department of Applied Mathematics
      
 * Dr. Jonas Thies:
