@@ -1,0 +1,17 @@
+symmetry        GENERAL
+
+which           SR
+convTol         1.0e-10
+
+blockSize       2
+maxIters        10000
+minBas          20
+maxBas          40
+
+innerSolvBlockSize      2
+innerSolvType           GMRES
+innerSolvMaxBas         20
+innerSolvMaxIters       20
+innerSolvRobust         1
+innerSolvStopAfterFirstConverged        1
+

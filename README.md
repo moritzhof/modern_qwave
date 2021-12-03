@@ -25,9 +25,9 @@ $ cmake ..
 ### Running with Phist
 
 It is important, after building qwaves++, to copy the jadaOpts file into the build folder you made for qwaves++, otherwise, the proper eigenvalues will not be found.
-
-- cp jadaOpts-tbbs.txt build/
-
+```
+ cp jadaOpts-tbbs.txt build/
+```
 ## Usage
 ```cpp
 std::size_t N = ... ;

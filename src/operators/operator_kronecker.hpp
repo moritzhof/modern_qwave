@@ -53,19 +53,27 @@ using dense_matrix = qwv::matrix<double>;
     return kron2D;
   }
 
-
-
 // Construct an operator representation of the 2D Laplacian on an n x n Chebyshev mesh covering an L x L domain
-//std::unique_ptr<Kron2D<double>> buildLaplaceOperator2D(int n, double L){
-//
-//          dense_matrix ChebD1   = buildDifferentialMatrixChebD1<double>(n);
-//          dense_matrix ChebD2   = buildDifferentialMatrixChebD2<double>(n, ChebD1);
-//
-//          // build differential matrices
-//          dense_matrix TBChebD2 = buildDifferentialMatrixTBChebD2<double>(n,L,ChebD1,ChebD2);
-//    std::vector<double> Vdum;
-//    std::unique_ptr<Kron2D<double>> kron2D(new Kron2D<double>(n, TBChebD2,n,TBChebD2,Vdum,1.0,1.0));
-//    return kron2D;
-//}
+std::unique_ptr<qwv::kron2D<double>> buildLaplaceOperator2D(std::size_t n, double L){
+    
+    auto roots = qwv::discretization::roots<double>{n};
+    // build differential matrices
+    auto TBChebD2 = qwv::differential::Chebyshev2DTB<double>(roots, n, L);
+    std::vector<double> Vdum;
+    std::unique_ptr<qwv::kron2D<double>> kron2D(new qwv::kron2D<double>(n, TBChebD2,n,TBChebD2,Vdum,1.0,1.0));
+    return kron2D;
+}
+
+#ifdef HAVE_PHIST
+std::unique_ptr<qwv::kron4D<double>> buildOperator4D(std::size_t nR, std::size_t nr,  double LR, double Lr, int parity1, int parity2, double a1, double a2, std::vector<double> const& V){
+
+    std::unique_ptr<qwv::kron2D<double>> kron2d_R = buildLaplaceOperator2D(nR, LR);
+    std::unique_ptr<qwv::kron2D<double>> kron2d_r = buildLaplaceOperator2D(nr, Lr);
+    std::unique_ptr<qwv::kron4D<double>> kron4D(new qwv::kron4D<double>(*kron2d_r,*kron2d_R,V,a2,a1,MPI_COMM_WORLD));
+return kron4D;
+
+}
+#endif
+
 
 

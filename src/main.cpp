@@ -15,6 +15,7 @@
 #include "operations/dgemm.hpp"
 
 #include "preconditioner/sylvester.hpp"
+#include "eigensolver/eigensolver.hpp"
 
 auto main(int argc, char* argv[])->int{
     
