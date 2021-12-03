@@ -22,7 +22,12 @@ $ cmake ..
 
 ## Usage
 ```cpp
-auto chebyshev = qwv::differential::Chebyshev1D(range, N);
+std::size_t N = ... ;
+auto roots = qwv::discretization::roots<double>{N}
+auto chebyshev = qwv::differential::Chebyshev1D<double>(range, N);
+
+// CUDA
+
 ```
 ## Developers
 * Moritz Travis Hof:
