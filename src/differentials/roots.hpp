@@ -60,6 +60,8 @@ namespace qwv{
  };
  
 #ifdef __CUDACC__
+ 
+#include "../cuda/memory.cu"
  namespace cuda{
  template<typename T>
  __device__ void roots(T* _roots, std::size_t N){

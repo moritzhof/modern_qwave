@@ -16,6 +16,7 @@
 
 #include "preconditioner/sylvester.hpp"
 #include "eigensolver/eigensolver.hpp"
+#include "cuda/memory.cu"
 
 auto main(int argc, char* argv[])->int{
     
@@ -50,6 +51,34 @@ auto main(int argc, char* argv[])->int{
     std::cout << cheby2DTB << std::endl;
     std::cout << "###########################\n";
     qwv::util::print_vector(gaussian);
+        
+        
+ /* CUDA PLAYGROUND
+  
+  
+  double L = 0.5;
+  std::size_t N = 10;
+  
+  auto roots = qwv::cuda::device_memory<double>::allocate_vector(N);
+  auto cheby1D = qwv::cuda::device_memory<double>::allocate_matrix(N,N);
+  auto cheby2D = qwv::cuda::device_memory<double>::allocate_matrix(N,N);
+  auto cheby1DTB= qwv::cuda::device_memory<double>::allocate_matrix(N,N);
+  auto cheby2DTB= qwv::cuda::device_memory<double>::allocate_matrix(N,N);
+ 
+  dim3 blocks (2, 2, 1);
+  dim3 threads(20, 20, 1);
+  //qwv::roots<double> <<< 1, N>>>(roots, N);
+  //Chebyshev1D<double><<<blocks,threads>>>(cheby1D, roots, N );
+  Chebyshev2DTB<double><<<blocks,threads>>>(cheby2DTB, cheby2D, cheby1D, roots, N , L);
+  qwv::cuda::synchronize();
+  
+  
+  
+  
+  
+  
+  */
+        
         
 //    std::cout << "###########################\n";
 //    qwv::util::print_vector(gaussian2);
