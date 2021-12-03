@@ -29,4 +29,4 @@ auto chebyshev = qwv::differential::Chebyshev1D(range, N);
      - German Aerospace Agency: High Performance Computing : Parallel Algorithms and Numerics
      - Technical University of Delft - Department of Applied Mathematics
 * Dr. Jonas Thies:
--Technical University of Delft - Department of Applied Mathematics
+     -Technical University of Delft - Department of Applied Mathematics
