@@ -64,9 +64,15 @@ namespace qwv{
 #include "../cuda/memory.cu"
  namespace cuda{
  template<typename T>
- __device__ void roots(T* _roots, std::size_t N){
+ __device__ void roots(qwv::cuda::device_ptr<T> Chebyshev _roots, std::size_t N){
      int i = threadIdx.x + blockIdx.x * blockDim.x;
      if(i < N) _roots[i] = cos(M_PI*(2*i+1)/(2*N));
+  }
+ 
+ template<typename T>
+ __device__ void roots2D(qwv::cuda::device_ptr<T> Chebyshev _roots, std::size_t N){
+     int i = threadIdx.x + blockIdx.x * blockDim.x;
+     if(i < N) _roots[i] = cos(M_PI*(2*i+1)/(4*N));
   }
  } // end of cuda namesapce
 #endif

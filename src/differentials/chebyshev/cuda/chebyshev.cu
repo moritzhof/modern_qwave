@@ -3,14 +3,17 @@
 #include "../../roots.hpp"
 
 #ifdef __CUDACC__
+#include "../../../cuda/memory.cu"
+
+using qwv::cuda::device_ptr;
+
 namespace qwv{
   namespace differential{
      namespace cuda{
      
      template<typename T>
-     __device__ void Chebyshev1D(T* Chebyshev, T* roots, std::size_t N){
+     __device__ void Chebyshev1D(device_ptr<T> Chebyshev Chebyshev, device_ptr<T> roots, std::size_t N){
 
-    
     int i = threadIdx.x + blockIdx.x * blockDim.x;
     int j = threadIdx.y + blockIdx.y * blockDim.y;
     
@@ -24,7 +27,7 @@ namespace qwv{
 //##################################################################################################
 //##################################################################################################
      template<typename T>
-     __device__ void Chebyshev2D(T* Chebyshev2D, T* Chebyshev1, T* roots, std::size_t N){
+     __device__ void Chebyshev2D(device_ptr<T> Chebyshev2D, device_ptr<T> Chebyshev1, device_ptr<T> roots, std::size_t N){
          
          qwv::differential::cuda::roots<T>(roots, N);
          qwv::differential::cuda::Chebyshev1D<T>(Chebyshev1, roots, N);
@@ -44,7 +47,7 @@ namespace qwv{
      
      
      template<typename T>
-     __device__ void Chebyshev1DTB(T* chebyshev1DTB, T* Chebyshev1, T* roots, std::size_t N, double L){
+     __device__ void Chebyshev1DTB(device_ptr<T> chebyshev1DTB, device_ptr<T> Chebyshev1, device_ptr<T> roots, std::size_t N, double L){
        
          T* A11 = (T*)malloc(N*sizeof(T));
 
@@ -64,7 +67,7 @@ namespace qwv{
 //##################################################################################################
 
    template<typename T>
-   __device__ void Chebyshev2DTB(T* chebyshev2DTB, T* Chebyshev2, T* Chebyshev1, T* roots, std::size_t N, double L){
+   __device__ void Chebyshev2DTB(device_ptr<T> chebyshev2DTB, device_ptr<T> Chebyshev2, device_ptr<T> Chebyshev1, device_ptr<T> roots, std::size_t N, double L){
 
        T* A21 = (T*)malloc(N*sizeof(T));
        T* A22 = (T*)malloc(N*sizeof(T));
