@@ -30,4 +30,5 @@ auto chebyshev = qwv::differential::Chebyshev1D(range, N);
      - Technical University of Delft - Department of Applied Mathematics
      
 * Dr. Jonas Thies:
+
      -Technical University of Delft - Department of Applied Mathematics
