@@ -1,16 +1,16 @@
 
 ![qwave banner](./images/qwave_banner.png)
 
-##Table of Contets
-*[General Information](#general-information)
-*[Dependencies](#dependencies)
-*[Setup](#setup)
-*[Usage](#usage)
+## Table of Contets
+* [General Information](#general-information)
+* [Dependencies](#dependencies)
+* [Setup](#setup)
+* [Usage](#usage)
 
-##General Information
+## General Information
 Qwaves is a quantum simulations to for higher-dimensional three body problems
 
-##Dependencies
+## Dependencies
 * c++20
 * Phist
 * cuBLAS or CUTLASS
@@ -20,6 +20,6 @@ Qwaves is a quantum simulations to for higher-dimensional three body problems
 $ cmake ..
 ```
 
-#Usage
+# Usage
 
 qwv::differential::Chebyshev1D(range, N);
