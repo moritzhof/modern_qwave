@@ -17,7 +17,7 @@ Qwaves++ is a computationally and numerically efficient modern templated C++20 a
 * Math Kernel Library (MKL)
 * Phist with Trilinos (see https://bitbucket.org/essex/phist/wiki/Home )
 
-### Optional
+#### Optional
 * NVCC or NVC++
 * cuBLAS or CUTLASS
 
