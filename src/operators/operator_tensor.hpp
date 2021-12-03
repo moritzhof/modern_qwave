@@ -166,7 +166,7 @@ public:
   //! construct from two kron2D objects C and D,
   //! a diagonal potential matrix V, and scalars a1, a2:
   //! kron4D = a1*(I (x) C) + a2*(D (x) I) + V
-  kron4D(const kron2D<ST>& C, const kron2D<ST>& D,
+  kron4D(const Kron2D<ST>& C, const Kron2D<ST>& D,
         std::vector<double> const& V, ST a1, ST a2, MPI_Comm comm=MPI_COMM_WORLD) :
   C_(C), D_(D), V_(V), a1_(a1), a2_(a2),
   map_(std::tuple{C_.C().numrows(),C_.D().numrows()},std::tuple{D_.C().numrows(),D_.D().numrows()},comm),
@@ -176,7 +176,7 @@ public:
         D_.num_local_rows()!=D_.num_global_rows() ||
         map_.map12().num_local_elements()!=map_.map12().num_global_elements() )
         {
-          throw std::logic_error("cannot handle distributed component kron2D objects in kron4D, yet");
+          throw std::logic_error("cannot handle distributed component Kron2D objects in kron4D, yet");
         }
 
         if (map_.map12().num_local_elements()!=C_.num_local_rows()||
@@ -237,7 +237,7 @@ public:
     auto [requests,xbuf]=start_transpose(X_span,map_,alpha*a2_,Xt_span,tmap_);
 
     // (2) overlap the communication with the second term: Y2 = alpha*a2*X*D'.
-    // The second term is tricky because (X*D') with D a kron2D can't be expressed directly in matrix-matrix products.
+    // The second term is tricky because (X*D') with D a Kron2D can't be expressed directly in matrix-matrix products.
     // We implement it as X*D' = (D*X')'. and compute it column-by column as messages
     // from the transpose come in. The back-transpose will be overlapped with the computation of the
     // first term, which doesn't involve any communication.
@@ -311,8 +311,8 @@ public:
 protected:
 
   double a1_, a2_;
-  kron2D<ST> C_;
-  kron2D<ST> D_;
+  Kron2D<ST> C_;
+  Kron2D<ST> D_;
   std::vector<ST> V_;
 
   //! range map.
@@ -369,7 +369,12 @@ public:
     if constexpr(std::is_same<ST,double>::value)
     {
       dtype=MPI_DOUBLE;
+#ifdef PHIST_HAVE_MKL
       MKL_Domatcopy('C', 'T', n, mloc, alpha, X.data(), n, X_buf.get(), mloc);
+#else
+      // available in OpenBLAS
+      cblas_domatcopy(CblasColMajor, CblasTrans, n, mloc, alpha, X.data(), n, X_buf.get(), mloc);
+#endif
     }
     else if constexpr(std::is_same<ST,std::complex<double>>::value)
     {
@@ -408,7 +413,7 @@ public:
 };
 
 template<typename ST>
-std::ostream& operator<<(std::ostream& os, const kron2D<ST>& op)
+std::ostream& operator<<(std::ostream& os, const Kron2D<ST>& op)
 {
   os << "% BEGIN MATLAB/OCTAVE CODE"<<std::endl;
   os << "% Operator a1*(I_m (x) C_n) + a2*(D_m (x) I_n) + V"<<std::endl;
@@ -424,6 +429,7 @@ std::ostream& operator<<(std::ostream& os, const kron2D<ST>& op)
   os << "% END MATLAB/OCTAVE CODE"<<std::endl;
   return os;
 }
+
 #endif
 
 } // end of namespace qwv
