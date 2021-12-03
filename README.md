@@ -1,6 +1,5 @@
 
 ![qwave banner](./images/qwaves_banner.png)
-
 ## Table of Contets
 * [General Information](#general-information)
 * [Dependencies](#dependencies)
