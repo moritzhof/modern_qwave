@@ -1,5 +1,5 @@
 
-![qwave banner](./images/qwave_banner.png)
+![qwave banner](./images/qwaves_banner.png)
 
 ## Table of Contets
 * [General Information](#general-information)
