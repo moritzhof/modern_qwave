@@ -24,7 +24,7 @@ $ cmake ..
 ```cpp
 std::size_t N = ... ;
 auto roots = qwv::discretization::roots<double>{N}
-auto chebyshev = qwv::differential::Chebyshev1D<double>(range, N);
+auto chebyshev = qwv::differential::Chebyshev1D<double>(roots, N);
 
 // CUDA
 
