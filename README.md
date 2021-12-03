@@ -20,7 +20,7 @@ Qwaves++ is a computationally and numerically efficient approach to determine bi
 $ cmake ..
 ```
 
-# running with phist
+### running with phist
 
 It is important, after building qwaves++, to copy the jadaOpts file into the build folder you made for qwaves++, otherwise, the proper eigenvalues will not be found.
 
