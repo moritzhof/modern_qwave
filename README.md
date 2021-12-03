@@ -10,8 +10,8 @@
 Qwaves is a quantum simulations to for higher-dimensional three body problems
 
 ## Dependencies
-* c++20
-* Phist
+* C++20
+* Phist with trilonis
 * cuBLAS or CUTLASS
 
 ## Setup
@@ -20,5 +20,6 @@ $ cmake ..
 ```
 
 # Usage
-
-qwv::differential::Chebyshev1D(range, N);
+```cpp
+auto chebyshev = qwv::differential::Chebyshev1D(range, N);
+```
