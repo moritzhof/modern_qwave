@@ -105,11 +105,12 @@ namespace qwv{
      
      
      
-     template<typename T>
-     __device__ void fourier_roots(qwv::cuda::device_ptr<T> Chebyshev _roots, std::size_t N){
-         int i = threadIdx.x + blockIdx.x * blockDim.x;
-         if(i < N) _roots[i] = (M_PI*(2*i+1)/(2*N));
-      }
+template<typename T>
+__device__ void fourier_roots(qwv::cuda::device_ptr<T> Chebyshev _roots, std::size_t N){
+    int i = threadIdx.x + blockIdx.x * blockDim.x;
+    if(i < N) _roots[i] = (M_PI*(2*i+1)/(2*N));
+  }
+     
  } // end of cuda namesapce
 #endif
     
