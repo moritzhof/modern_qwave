@@ -111,6 +111,7 @@ __device__ void fourier_roots(qwv::cuda::device_ptr<T> Chebyshev _roots, std::si
     if(i < N) _roots[i] = (M_PI*(2*i+1)/(2*N));
   }
      
+     
  } // end of cuda namesapce
 #endif
     
