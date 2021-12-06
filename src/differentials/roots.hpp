@@ -59,6 +59,34 @@ namespace qwv{
      std::vector<T> result{};
  };
  
+ 
+ 
+ template<typename T>
+ class fourier_roots{
+ public:
+     
+     fourier_roots{() = default;
+     fourier_roots{(std::size_t N) : N_(N){
+         result.reserve(N);
+      for(auto i :std::views::iota(std::size_t(0)) | std::views::take(N)){
+          this->result.push_back(((2*i+1)*M_PI)/(N));
+         }
+     }
+     
+    ~fourier_roots{() = default;
+     
+     auto& operator[](auto i ){
+         return this->result[i];
+     }
+     
+     void free(){
+         return this->result.resize(0);
+     }
+ private:
+     std::size_t N_;
+     std::vector<T> result{};
+ };
+ 
 #ifdef __CUDACC__
  
 #include "../cuda/memory.cu"
