@@ -1,7 +1,7 @@
 
 #set(C_LIBSOURCE  buildMatrix.c SparseMatrixOperations.c pSparseMatrixOperations.c #StandardMatrixOperations.c Statistics.c output.c)
 
-set(CXX_LIBSOURCE)# buildOperator.cpp buildPreconditioner.cpp TensorMap.cpp)
+set(CXX_LIBSOURCE) # buildOperator.cpp buildPreconditioner.cpp TensorMap.cpp)
 
 #if (ENABLE_PARPACK)
 #  list(APPEND C_LIBSOURCE parpack_interface.c)
@@ -10,7 +10,7 @@ set(CXX_LIBSOURCE)# buildOperator.cpp buildPreconditioner.cpp TensorMap.cpp)
 
 if (HAVE_PHIST)
   add_definitions(-DHAVE_PHIST=1)
-  list(APPEND CXX_LIBSOURCE phist_interface.cpp ddgemm.cpp)
+  list(APPEND CXX_LIBSOURCE phist_interface.hpp ddgemm.hpp)
 endif()
 
 add_library(tbbs STATIC ${C_LIBSOURCE})

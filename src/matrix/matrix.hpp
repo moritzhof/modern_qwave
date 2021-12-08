@@ -45,9 +45,8 @@ public:
  matrix() = default;
     
  matrix(std::size_t rows, std::size_t cols) : _row(rows), _col(cols), _map(rows,cols) {
-   mat.resize(rows*cols);
-   std::for_each(exec, _map.begin(), _map.end(),
-        [&](auto idx){auto [i,j]=idx; (*this)(i,j)= static_cast<T>(1.0);});
+   mat.reserve(rows*cols);
+   
    }
 
     

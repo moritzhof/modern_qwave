@@ -52,6 +52,11 @@ auto main(int argc, char* argv[])->int{
     std::cout << "###########################\n";
     qwv::util::print_vector(gaussian);
         
+        std::cout << "###########################\n";
+        qwv::matrix<double> mat(N, N);
+        std::cout << mat << std::endl;
+        
+        
         
  /* CUDA PLAYGROUND
   

@@ -65,15 +65,15 @@ namespace qwv{
  class fourier_roots{
  public:
      
-     fourier_roots{() = default;
-     fourier_roots{(std::size_t N) : N_(N){
+     fourier_roots() = default;
+     fourier_roots(std::size_t N) : N_(N){
          result.reserve(N);
       for(auto i :std::views::iota(std::size_t(0)) | std::views::take(N)){
           this->result.push_back(((2*i+1)*M_PI)/(N));
          }
      }
      
-    ~fourier_roots{() = default;
+    ~fourier_roots() = default;
      
      auto& operator[](auto i ){
          return this->result[i];

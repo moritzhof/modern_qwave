@@ -9,10 +9,9 @@ cmake_minimum_required(VERSION 3.16.0)
 ###
 ### note: the Fortran is for building PARPACK,
 ### the C++ for GoogleTest
-project(qwaves LANGUAGES C CXX Fortran)
-set(CMAKE_C_STANDARD_REQUIRED On)
-set(CMAKE_C_STANDARD 99)
+project(qwaves LANGUAGES CXX CUDA)
 
+##CUDA=>/path-to-cuda/nvcc or nvc++>
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
